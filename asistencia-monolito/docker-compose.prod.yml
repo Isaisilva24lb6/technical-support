@@ -1,0 +1,63 @@
+# ============================================
+# Docker Compose - PRODUCCIÓN (Raspberry Pi)
+# ============================================
+# Este archivo es para despliegue en la Raspberry Pi 5
+# Descarga la imagen multi-arquitectura desde Docker Hub
+# 
+# IMPORTANTE: Reemplaza "TU_USUARIO_DOCKERHUB" con tu usuario real de Docker Hub
+# 
+# Uso en la Raspberry Pi:
+#   docker-compose -f docker-compose.prod.yml pull    # Descargar última versión
+#   docker-compose -f docker-compose.prod.yml up -d   # Levantar el contenedor
+#   docker-compose -f docker-compose.prod.yml down    # Detener el contenedor
+#   docker-compose -f docker-compose.prod.yml logs -f # Ver logs
+
+services:
+  asistencia-app:
+    # Imagen desde Docker Hub (multi-arquitectura: amd64 + arm64)
+    # Usuario: isasi24
+    image: isasi24/asistencia-monolito:latest
+    
+    container_name: asistencia-monolito-prod
+    
+    # Mapeo de puertos
+    ports:
+      - "3000:3000"
+    
+    # Volúmenes para persistir datos
+    # IMPORTANTE: En la RPi, asegúrate de que esta ruta apunte al SSD
+    # Si tu SSD está montado en /mnt/ssd1tb, cambia a: /mnt/ssd1tb/data:/app/data
+    volumes:
+      - ./data:/app/data
+    
+    # Política de reinicio
+    # "unless-stopped" = se reinicia automáticamente incluso después de reiniciar la RPi
+    restart: unless-stopped
+    
+    # Variables de entorno para producción
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    
+    # Forzar arquitectura arm64 (opcional, Docker lo detecta automáticamente)
+    platform: linux/arm64
+    
+    # Límites de recursos (opcional, ajusta según tu RPi)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 2G
+    #     reservations:
+    #       cpus: '1.0'
+    #       memory: 1G
+    
+    # Redes
+    networks:
+      - asistencia-network
+
+# Red personalizada
+networks:
+  asistencia-network:
+    driver: bridge
+

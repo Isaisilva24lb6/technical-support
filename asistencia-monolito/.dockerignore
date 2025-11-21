@@ -1,0 +1,103 @@
+# ============================================
+# .dockerignore
+# ============================================
+# Este archivo le dice a Docker qué archivos/carpetas NO copiar
+# al contexto de construcción. Hace el build más rápido y la imagen más liviana.
+
+# ============================================
+# DEPENDENCIAS (se instalan con npm install)
+# ============================================
+node_modules/
+client/node_modules/
+npm-debug.log*
+
+# ============================================
+# GIT (no necesario en la imagen)
+# ============================================
+.git/
+.gitignore
+.gitattributes
+
+# ============================================
+# BASE DE DATOS Y DATOS SENSIBLES
+# ============================================
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# ARCHIVOS COMPILADOS (se generan en el build)
+# ============================================
+build/
+dist/
+client/dist/
+
+# ============================================
+# DOCKER (no copiar archivos de Docker al build)
+# ============================================
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.prod.yml
+docker-compose*.yml
+
+# ============================================
+# VARIABLES DE ENTORNO
+# ============================================
+.env
+.env.*
+!.env.example
+
+# ============================================
+# LOGS
+# ============================================
+*.log
+logs/
+
+# ============================================
+# ARCHIVOS DEL SISTEMA OPERATIVO
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+*.swp
+*~
+
+# ============================================
+# IDEs y EDITORES
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ============================================
+# DOCUMENTACIÓN (no necesaria en la imagen)
+# ============================================
+README.md
+LICENSE
+*.md
+!package.json
+!package-lock.json
+
+# ============================================
+# TESTING
+# ============================================
+coverage/
+.nyc_output/
+*.test.js
+*.spec.js
+__tests__/
+__mocks__/
+
+# ============================================
+# TEMPORALES
+# ============================================
+*.tmp
+*.temp
+.cache/
+tmp/
+

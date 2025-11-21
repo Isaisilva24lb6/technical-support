@@ -8,12 +8,11 @@ FROM node:23.7.0-alpine AS builder
 # Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia los archivos de definición de dependencias
+# Copia los archivos de definición de dependencias (raíz y cliente)
 COPY package.json package-lock.json ./
+COPY client/package.json client/package-lock.json ./client/
 
-# Instala las dependencias. Esto es rápido gracias al package-lock.json
-# Nota: Si tu proyecto React estuviera en una subcarpeta (ej. /client),
-# deberías usar COPY y WORKDIR para ir allí.
+# Instala las dependencias de la raíz
 RUN npm install
 
 # Copia el resto del código fuente (Incluye código de React y Express)
@@ -40,19 +39,24 @@ WORKDIR /app
 # 1. Copia solo los archivos esenciales del backend (Express) y los assets compilados
 # Copia los archivos del backend
 COPY package.json package-lock.json ./
-COPY index.js ./ # Suponiendo que tu script principal de Node es index.js
-COPY ./backend ./backend # Si tienes una carpeta de backend
+COPY index.js ./
+COPY ./server ./server
+COPY ./config ./config
 
-# Copia los assets de React compilados desde la etapa 'builder'
-COPY --from=builder /app/build ./build
+# Copia los assets de React compilados desde la etapa 'builder' (Vite compila a client/dist)
+COPY --from=builder /app/client/dist ./build
 
 # 2. Instala solo las dependencias de producción.
 # Esto asegura que sqlite3 se compile para la arquitectura correcta (arm64 o amd64).
 # Aquí es donde el TARGETARCH se vuelve crítico para los binarios nativos.
 RUN npm install --omit=dev
 
+# Crea la carpeta para los archivos Excel subidos
+RUN mkdir -p data/uploads
+
 # 3. Configuración final
-EXPOSE 3000 # Puerto en el que correrá Express.js
+# Puerto en el que correrá Express.js
+EXPOSE 3000
 
 # Comando para arrancar el servidor Node.js
 CMD ["node", "index.js"]

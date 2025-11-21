@@ -1,5 +1,64 @@
-# Ignorar dependencias
+# ============================================
+# DEPENDENCIAS
+# ============================================
 node_modules/
 
-# Ignorar compilación de React
-/client/dist
+# ============================================
+# ARCHIVOS COMPILADOS (Build)
+# ============================================
+build/
+client/dist/
+dist/
+
+# ============================================
+# BASE DE DATOS Y DATOS SENSIBLES
+# ============================================
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# VARIABLES DE ENTORNO
+# ============================================
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
+# ============================================
+# LOGS
+# ============================================
+*.log
+npm-debug.log*
+logs/
+
+# ============================================
+# ARCHIVOS DEL SISTEMA OPERATIVO
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*~
+
+# ============================================
+# IDEs y EDITORES
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ============================================
+# TEMPORALES
+# ============================================
+*.tmp
+*.temp
+.cache/

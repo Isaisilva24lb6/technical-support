@@ -1,0 +1,49 @@
+# ============================================
+# Docker Compose - DESARROLLO LOCAL
+# ============================================
+# Este archivo es para desarrollo en tu PC (WSL2/Debian)
+# Construye la imagen localmente en lugar de descargarla de Docker Hub
+# 
+# Uso:
+#   docker-compose up -d        # Levantar el contenedor
+#   docker-compose down         # Detener y eliminar el contenedor
+#   docker-compose logs -f      # Ver logs en tiempo real
+#   docker-compose restart      # Reiniciar el contenedor
+
+services:
+  asistencia-app:
+    # Construye la imagen localmente desde el Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: asistencia-monolito-dev
+    
+    # Mapeo de puertos: [puerto_host]:[puerto_contenedor]
+    # Puerto cambiado a 3005 para evitar conflicto con ZuluCommerce
+    ports:
+      - "3005:3000"
+    
+    # Volúmenes para persistir datos
+    # La carpeta 'data/' del host se monta en '/app/data' del contenedor
+    volumes:
+      - ./data:/app/data
+    
+    # Reiniciar automáticamente si el contenedor falla
+    # "unless-stopped" = reinicia siempre excepto si lo detuviste manualmente
+    restart: unless-stopped
+    
+    # Variables de entorno (opcional, puedes agregar más aquí)
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    
+    # Redes (opcional, útil si agregas más servicios después)
+    networks:
+      - asistencia-network
+
+# Red personalizada (opcional pero buena práctica)
+networks:
+  asistencia-network:
+    driver: bridge
+
