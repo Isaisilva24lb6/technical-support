@@ -107,6 +107,15 @@ docker-compose up -d --build
 
 ### **Construcción Multi-Arquitectura (Para Docker Hub)**
 
+> ⚠️ **IMPORTANTE:** Antes de construir y subir imágenes, debes configurar tu cuenta de Docker Hub.
+> 
+> 📖 **Ver guía completa:** [Configuración de Docker Hub](./DOCS/docker-hub-setup.md)
+> 
+> **Pasos básicos:**
+> 1. Crea una cuenta en https://hub.docker.com/signup
+> 2. Edita `docker-compose.prod.yml` y reemplaza `tu-usuario-dockerhub` con tu usuario real
+> 3. Inicia sesión: `docker login`
+
 **Configuración inicial (solo primera vez):**
 
 ```bash
@@ -116,7 +125,8 @@ docker buildx inspect --bootstrap
 
 # 2. Login a Docker Hub
 docker login
-# Usuario: tu usuario
+# Usuario: tu-usuario-dockerhub
+# Contraseña: [tu contraseña]
 ```
 
 **Construir y subir imagen:**
@@ -125,7 +135,7 @@ docker login
 # Construir para amd64 (PC) y arm64 (Raspberry Pi) y subir
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t usuario/asistencia-monolito:latest \
+  -t tu-usuario-dockerhub/asistencia-monolito:latest \
   --push \
   .
 ```
@@ -224,7 +234,7 @@ El sistema utiliza **7 tablas** para capturar toda la información del Excel:
 ### **2. Construcción Multi-Arquitectura**
 ```bash
 # Construir para amd64 + arm64 → Subir a Docker Hub
-docker buildx build --platform linux/amd64,linux/arm64 -t usuario/asistencia-monolito:latest --push .
+docker buildx build --platform linux/amd64,linux/arm64 -t tu-usuario-dockerhub/asistencia-monolito:latest --push .
 ```
 
 ### **3. Despliegue en Raspberry Pi**
@@ -237,24 +247,39 @@ docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compo
 
 ## 📊 **Estado del Proyecto**
 
-**Fase Actual:** ✅ Sistema Base Funcionando y Probado
+**Fase Actual:** ✅ Frontend Base + Backend Funcional
 
+### Backend
 - [x] Arquitectura definida
-- [x] Dockerfile multi-arquitectura
-- [x] Base de datos (7 tablas)
+- [x] Dockerfile multi-arquitectura (amd64 + arm64)
+- [x] Base de datos SQLite (7 tablas completas)
 - [x] API básica (subida de archivos)
 - [x] Docker Compose (desarrollo y producción)
-- [x] **Sistema probado y operacional** ✨
-- [x] **Base de datos creada (64KB, 7 tablas)** ✨
-- [x] **API REST respondiendo correctamente** ✨
+- [x] Sistema probado y operacional ✨
 - [ ] Lógica de procesamiento de Excel (próximo paso)
-- [ ] Interfaz de usuario React
-- [ ] Tests (TDD)
+
+### Frontend
+- [x] **React + TypeScript + Vite** ✨
+- [x] **React Router configurado** ✨
+- [x] **Sistema de diseño con variables CSS** ✨
+- [x] **Navbar con glassmorphism y tema oscuro** ✨
+- [x] **Efectos visuales modernos (overlays, ripple, gradientes)** ✨
+- [x] **Responsividad completa (móvil → desktop)** ✨
+- [x] **2 páginas placeholder** ✨
+- [ ] Componentes de negocio (FileUploader, Tables, etc.)
+- [ ] Integración con APIs del backend
+
+### Testing
+- [ ] Tests unitarios
+- [ ] Tests de integración
+- [ ] Tests E2E
 
 **Acceso al Sistema:** http://localhost:3005  
 **API Status:** http://localhost:3005/api/status
 
-Ver detalles completos y errores resueltos en: [`DOCS/setup-log.md`](./DOCS/setup-log.md)
+**Documentación:**
+- [Histórico de Configuración](./DOCS/setup-log.md) - Problemas resueltos y setup completo
+- [Arquitectura del Frontend](./DOCS/frontend-architecture.md) - Diseño, componentes y guía de estilos
 
 ---
 
@@ -283,16 +308,17 @@ ports:
 ```
 
 ### **El contenedor se reinicia constantemente (Restarting)**
-**Causa:** Error en el código que hace que Node.js crashee.
+**Causa:** Imagen de Docker corrupta o construcción con caché problemática.
 
-**Solución:**
+**Solución rápida:**
 ```bash
-# Ver logs sin -d para ver el error
-docker-compose up
-
-# O inspeccionar logs del contenedor
-docker logs asistencia-monolito-dev
+# Reconstruir sin caché
+docker compose down
+docker compose build --no-cache
+docker compose up -d
 ```
+
+**📖 Ver solución completa:** [Troubleshooting Docker](./DOCS/troubleshooting-docker.md)
 
 ### **Error: "Invalid containerPort" en Docker build**
 **Causa:** Comentario inline en el comando `EXPOSE` del Dockerfile.
@@ -330,13 +356,21 @@ Para más detalles sobre errores específicos y sus soluciones, consulta: [`DOCS
 
 Desarrollado por el equipo de soporte técnico.
 
-**Docker Hub:** [usuario](https://hub.docker.com/u/usuario)
-
 ---
 
 ## 📚 **Documentación Adicional**
 
-- [Histórico de Configuración](./DOCS/setup-log.md)
-- [Estructura del Excel de Asistencia](./DOCS/excel-structure.md) *(por crear)*
-- [Guía de Desarrollo con TDD](./DOCS/tdd-guide.md) *(por crear)*
+### Guías de Usuario
+- [Guía de Inicio Rápido](./QUICK_START.md) - Cómo empezar a usar el sistema
+- [Gestión de Empleados](./DOCS/employee-management.md) - Módulo de empleados
+
+### Guías de Desarrollo y Despliegue
+- [Configuración de Docker Hub](./DOCS/docker-hub-setup.md) - Cómo configurar tu cuenta para hacer push
+- [Solución de Problemas con Docker](./DOCS/troubleshooting-docker.md) - Errores comunes y sus soluciones
+- [Arquitectura del Frontend](./DOCS/frontend-architecture.md) - Diseño, componentes y efectos visuales
+- [Histórico de Configuración](./DOCS/setup-log.md) - Log completo del setup del proyecto
+
+### Documentación Técnica *(Por crear)*
+- [Estructura del Excel de Asistencia](./DOCS/excel-structure.md)
+- [Guía de Desarrollo con TDD](./DOCS/tdd-guide.md)
 

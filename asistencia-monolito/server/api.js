@@ -6,6 +6,9 @@ const path = require('path');
 const db = require('../config/db'); // Conexión a SQLite
 const fs = require('fs');
 
+// --- Importar rutas de módulos ---
+const empleadosRoutes = require('./routes/empleados');
+
 // --- Configuración de Multer para la subida de archivos ---
 // Guardamos el archivo Excel en la carpeta 'data/' (el volumen persistente)
 const storage = multer.diskStorage({
@@ -55,9 +58,12 @@ router.get('/status', (req, res) => {
     // Esta ruta ya estaba en index.js, la movemos aquí para centralizar APIs
     res.json({ 
         status: 'OK', 
-        version: '1.1 (Con API de Carga)', 
+        version: '1.2 (Con Gestión de Empleados)', 
         dbConnected: !!db // Muestra si la DB está conectada
     });
 });
+
+// --- Montar rutas de módulos ---
+router.use('/empleados', empleadosRoutes);
 
 module.exports = router;

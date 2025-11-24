@@ -15,8 +15,8 @@
 services:
   asistencia-app:
     # Imagen desde Docker Hub (multi-arquitectura: amd64 + arm64)
-    # Usuario: isasi24
-    image: isasi24/asistencia-monolito:latest
+    # IMPORTANTE: Reemplaza "tu-usuario-dockerhub" con tu usuario real de Docker Hub
+    image: tu-usuario-dockerhub/asistencia-monolito:latest
     
     container_name: asistencia-monolito-prod
     

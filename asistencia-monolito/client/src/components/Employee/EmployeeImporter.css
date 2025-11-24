@@ -1,0 +1,63 @@
+/* client/src/components/Employee/EmployeeImporter.css */
+
+.employee-importer {
+  width: 100%;
+}
+
+.format-list {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--spacing-md);
+}
+
+.format-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.format-list li:last-child {
+  border-bottom: none;
+}
+
+.warnings-list {
+  list-style: disc;
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.warnings-list li {
+  margin-bottom: 0.25rem;
+}
+
+.success-icon {
+  font-size: 4rem;
+  color: var(--success-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.success-message-box {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--success-color);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  text-align: left;
+  white-space: pre-line;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.dark-mode .success-message-box {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+@media (max-width: 768px) {
+  .success-icon {
+    font-size: 3rem;
+  }
+}
+
+
+
+

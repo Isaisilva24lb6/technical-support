@@ -72,6 +72,7 @@ db.serialize(() => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             num TEXT NOT NULL UNIQUE,
             nombre TEXT NOT NULL,
+            correo TEXT UNIQUE,
             departamento TEXT DEFAULT 'aca',
             grupo TEXT,
             activo INTEGER DEFAULT 1
@@ -81,6 +82,16 @@ db.serialize(() => {
             console.error('[DB ERROR] Error al crear tabla "empleados":', err.message);
         } else {
             console.log('[DB OK] Tabla "empleados" lista.');
+            
+            // Agregar columna correo si la tabla ya existe (migración)
+            db.run(`
+                ALTER TABLE empleados ADD COLUMN correo TEXT UNIQUE
+            `, (alterErr) => {
+                // Si la columna ya existe, ignorar el error
+                if (alterErr && !alterErr.message.includes('duplicate column')) {
+                    console.log('[DB INFO] Columna "correo" agregada a empleados.');
+                }
+            });
         }
     });
 
@@ -255,4 +266,5 @@ db.serialize(() => {
 
 // Este objeto 'db' será importado por otros archivos (api.js, index.js, etc.)
 module.exports = db;
+
 
