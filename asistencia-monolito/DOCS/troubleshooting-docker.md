@@ -241,3 +241,6 @@ docker stats asistencia-monolito-dev
 
 
 
+
+
+

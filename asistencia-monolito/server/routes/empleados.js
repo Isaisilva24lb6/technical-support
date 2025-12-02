@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('../../config/db');
 const { parseEmployeesExcel } = require('../utils/excelParser');
+const ExcelJS = require('exceljs');
 
 // --- Configuración de Multer para Excel de Empleados ---
 const storage = multer.diskStorage({
@@ -103,6 +104,97 @@ router.post('/import', upload.single('excelFile'), async (req, res) => {
 });
 
 /**
+ * ➕ POST /api/empleados/create
+ * 
+ * Crea un nuevo empleado individual (no desde Excel)
+ */
+router.post('/create', async (req, res) => {
+    const { num, nombre, correo, departamento, grupo, activo } = req.body;
+
+    try {
+        // Validar campos requeridos
+        if (!num || num.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'El número de empleado es requerido' 
+            });
+        }
+
+        if (!nombre || nombre.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'El nombre es requerido' 
+            });
+        }
+
+        // Verificar si el número ya existe
+        const existeNum = await new Promise((resolve, reject) => {
+            db.get('SELECT id FROM empleados WHERE num = ?', [num.trim()], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (existeNum) {
+            return res.status(400).json({ 
+                error: `El número ${num} ya está asignado a otro empleado` 
+            });
+        }
+
+        // Verificar si el correo ya existe (si se proporciona)
+        if (correo && correo.trim().length > 0) {
+            const existeCorreo = await new Promise((resolve, reject) => {
+                db.get('SELECT id FROM empleados WHERE correo = ?', [correo.trim()], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+
+            if (existeCorreo) {
+                return res.status(400).json({ 
+                    error: `El correo ${correo} ya está asignado a otro empleado` 
+                });
+            }
+        }
+
+        // Normalizar el valor de activo: convertir boolean a integer
+        const activoValue = (activo === true || activo === 1 || activo === '1') ? 1 : 0;
+
+        // Insertar nuevo empleado
+        const empleadoId = await new Promise((resolve, reject) => {
+            db.run(
+                `INSERT INTO empleados (num, nombre, correo, departamento, grupo, activo)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    num.trim(),
+                    nombre.trim(),
+                    correo && correo.trim().length > 0 ? correo.trim() : null,
+                    departamento || 'aca',
+                    grupo && grupo.trim().length > 0 ? grupo.trim() : null,
+                    activoValue
+                ],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                }
+            );
+        });
+
+        console.log(`[EMPLEADOS] Empleado creado: ${nombre} (#${num})`);
+
+        res.status(201).json({
+            message: 'Empleado creado exitosamente',
+            id: empleadoId
+        });
+
+    } catch (error) {
+        console.error('[EMPLEADOS ERROR]', error);
+        res.status(500).json({ 
+            error: 'Error al crear empleado', 
+            details: error.message 
+        });
+    }
+});
+
+/**
  * ✅ POST /api/empleados/confirm
  * 
  * Recibe los datos validados manualmente por el usuario y los guarda en la DB.
@@ -165,7 +257,14 @@ router.post('/confirm', async (req, res) => {
                             `UPDATE empleados 
                              SET nombre = ?, correo = ?, departamento = ?, grupo = ?, activo = ?
                              WHERE num = ?`,
-                            [emp.nombre, emp.correo, emp.departamento, emp.grupo, emp.activo ? 1 : 0, emp.num],
+                            [
+                                emp.nombre,
+                                emp.correo && emp.correo.trim().length > 0 ? emp.correo.trim() : null,
+                                emp.departamento || 'aca',
+                                emp.grupo && emp.grupo.trim().length > 0 ? emp.grupo.trim() : null,
+                                emp.activo ? 1 : 0,
+                                emp.num
+                            ],
                             function(err) {
                                 if (err) reject(err);
                                 else resolve();
@@ -192,7 +291,14 @@ router.post('/confirm', async (req, res) => {
                         db.run(
                             `INSERT INTO empleados (num, nombre, correo, departamento, grupo, activo)
                              VALUES (?, ?, ?, ?, ?, ?)`,
-                            [emp.num, emp.nombre, emp.correo, emp.departamento, emp.grupo, emp.activo ? 1 : 0],
+                            [
+                                emp.num,
+                                emp.nombre,
+                                emp.correo && emp.correo.trim().length > 0 ? emp.correo.trim() : null,
+                                emp.departamento || 'aca',
+                                emp.grupo && emp.grupo.trim().length > 0 ? emp.grupo.trim() : null,
+                                emp.activo ? 1 : 0
+                            ],
                             function(err) {
                                 if (err) reject(err);
                                 else resolve();
@@ -242,6 +348,108 @@ router.post('/confirm', async (req, res) => {
 });
 
 /**
+ * 📥 GET /api/empleados/export
+ * 
+ * Exporta todos los empleados a un archivo Excel
+ * NOTA: Esta ruta DEBE estar ANTES de GET /:id para evitar conflictos
+ */
+router.get('/export', async (req, res) => {
+    try {
+        console.log('[EMPLEADOS] Iniciando exportación a Excel...');
+
+        // Obtener todos los empleados
+        const empleados = await new Promise((resolve, reject) => {
+            db.all(
+                `SELECT num, nombre, correo, departamento, grupo, activo 
+                 FROM empleados 
+                 ORDER BY num ASC`,
+                [],
+                (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                }
+            );
+        });
+
+        if (empleados.length === 0) {
+            return res.status(404).json({ 
+                error: 'No hay empleados para exportar' 
+            });
+        }
+
+        // Crear workbook
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Empleados');
+
+        // Configurar columnas
+        worksheet.columns = [
+            { header: 'Número', key: 'num', width: 12 },
+            { header: 'Nombre', key: 'nombre', width: 35 },
+            { header: 'Correo', key: 'correo', width: 35 },
+            { header: 'Departamento', key: 'departamento', width: 15 },
+            { header: 'Grupo', key: 'grupo', width: 10 },
+            { header: 'Estado', key: 'activo', width: 12 }
+        ];
+
+        // Estilo de cabecera
+        worksheet.getRow(1).font = { bold: true, size: 12 };
+        worksheet.getRow(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4472C4' }
+        };
+        worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+        // Agregar filas
+        empleados.forEach(emp => {
+            worksheet.addRow({
+                num: emp.num,
+                nombre: emp.nombre,
+                correo: emp.correo || '',
+                departamento: emp.departamento || 'aca',
+                grupo: emp.grupo || '',
+                activo: emp.activo ? 'Activo' : 'Inactivo'
+            });
+        });
+
+        // Aplicar bordes a todas las celdas
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+        });
+
+        // Generar nombre de archivo
+        const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const filename = `empleados_${timestamp}.xlsx`;
+
+        // Configurar headers para descarga
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Escribir el archivo en la respuesta
+        await workbook.xlsx.write(res);
+        
+        console.log(`[EMPLEADOS] Excel exportado: ${filename} (${empleados.length} empleados)`);
+        
+        res.end();
+
+    } catch (error) {
+        console.error('[EMPLEADOS ERROR]', error);
+        res.status(500).json({ 
+            error: 'Error al exportar empleados', 
+            details: error.message 
+        });
+    }
+});
+
+/**
  * 📋 GET /api/empleados
  * 
  * Lista todos los empleados activos
@@ -262,9 +470,18 @@ router.get('/', (req, res) => {
             });
         }
 
+        // Normalizar datos: convertir activo (INTEGER) a boolean
+        const empleadosNormalizados = rows.map(emp => ({
+            ...emp,
+            activo: emp.activo === 1,
+            // Asegurar que campos opcionales sean null si están vacíos
+            correo: emp.correo || null,
+            grupo: emp.grupo || null
+        }));
+
         res.status(200).json({
-            empleados: rows,
-            total: rows.length
+            empleados: empleadosNormalizados,
+            total: empleadosNormalizados.length
         });
     });
 });
@@ -298,8 +515,134 @@ router.get('/:id', (req, res) => {
             });
         }
 
-        res.status(200).json(row);
+        // Normalizar datos: convertir activo (INTEGER) a boolean
+        const empleadoNormalizado = {
+            ...row,
+            activo: row.activo === 1,
+            correo: row.correo || null,
+            grupo: row.grupo || null
+        };
+
+        res.status(200).json(empleadoNormalizado);
     });
+});
+
+/**
+ * ✏️ PUT /api/empleados/:id
+ * 
+ * Actualiza un empleado existente
+ */
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { num, nombre, correo, departamento, grupo, activo } = req.body;
+
+    try {
+        // Validar campos requeridos
+        if (!nombre || nombre.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'El nombre es requerido' 
+            });
+        }
+
+        if (!num || num.trim().length === 0) {
+            return res.status(400).json({ 
+                error: 'El número de empleado es requerido' 
+            });
+        }
+
+        // Verificar si el empleado existe
+        const empleado = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM empleados WHERE id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if (!empleado) {
+            return res.status(404).json({ 
+                error: 'Empleado no encontrado' 
+            });
+        }
+
+        // Verificar si el nuevo número ya existe en otro empleado
+        if (num !== empleado.num) {
+            const existeNum = await new Promise((resolve, reject) => {
+                db.get(
+                    'SELECT id FROM empleados WHERE num = ? AND id != ?',
+                    [num, id],
+                    (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    }
+                );
+            });
+
+            if (existeNum) {
+                return res.status(400).json({ 
+                    error: `El número ${num} ya está asignado a otro empleado` 
+                });
+            }
+        }
+
+        // Verificar si el nuevo correo ya existe en otro empleado
+        if (correo && correo.trim().length > 0 && correo !== empleado.correo) {
+            const existeCorreo = await new Promise((resolve, reject) => {
+                db.get(
+                    'SELECT id FROM empleados WHERE correo = ? AND id != ?',
+                    [correo, id],
+                    (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    }
+                );
+            });
+
+            if (existeCorreo) {
+                return res.status(400).json({ 
+                    error: `El correo ${correo} ya está asignado a otro empleado` 
+                });
+            }
+        }
+
+        // Normalizar el valor de activo: convertir boolean a integer
+        const activoValue = (activo === true || activo === 1 || activo === '1') ? 1 : 0;
+
+        // Actualizar empleado
+        await new Promise((resolve, reject) => {
+            db.run(
+                `UPDATE empleados 
+                 SET num = ?, nombre = ?, correo = ?, departamento = ?, grupo = ?, activo = ?
+                 WHERE id = ?`,
+                [
+                    num.trim(),
+                    nombre.trim(),
+                    correo && correo.trim().length > 0 ? correo.trim() : null,
+                    departamento || 'aca',
+                    grupo && grupo.trim().length > 0 ? grupo.trim() : null,
+                    activoValue,
+                    id
+                ],
+                function(err) {
+                    if (err) reject(err);
+                    else resolve();
+                }
+            );
+        });
+
+        console.log(`[EMPLEADOS] Empleado actualizado: ${nombre} (#${num})`);
+
+        res.status(200).json({
+            message: 'Empleado actualizado exitosamente',
+            id: parseInt(id)
+        });
+
+    } catch (error) {
+        console.error('[EMPLEADOS ERROR]', error);
+        res.status(500).json({ 
+            error: 'Error al actualizar empleado', 
+            details: error.message 
+        });
+    }
 });
 
 /**
@@ -339,6 +682,7 @@ router.delete('/:id', (req, res) => {
 });
 
 module.exports = router;
+
 
 
 

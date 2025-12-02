@@ -21,11 +21,11 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 2. Parser de JSON
-app.use(express.json());
+// 2. Parser de JSON (con límite aumentado para archivos grandes)
+app.use(express.json({ limit: '50mb' }));
 
 // 3. Parser de URL-encoded (para formularios)
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ============================================
 // RUTAS DE API

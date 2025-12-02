@@ -4,9 +4,10 @@ import './FileUploader.css';
 
 interface FileUploaderProps {
   onFileSelect?: (file: File) => void;
+  disabled?: boolean;
 }
 
-function FileUploader({ onFileSelect }: FileUploaderProps) {
+function FileUploader({ onFileSelect, disabled = false }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +44,7 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
 
   // Manejar drag over
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -50,6 +52,7 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
 
   // Manejar drag leave
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -57,6 +60,7 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
 
   // Manejar drop
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -75,6 +79,7 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
 
   // Manejar selección desde input
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
@@ -89,6 +94,7 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
 
   // Abrir explorador de archivos
   const handleButtonClick = () => {
+    if (disabled) return;
     fileInputRef.current?.click();
   };
 
@@ -114,11 +120,12 @@ function FileUploader({ onFileSelect }: FileUploaderProps) {
     <div className="file-uploader">
       {/* Área de drag & drop */}
       <div
-        className={`drop-zone ${isDragging ? 'drop-zone--dragging' : ''} ${selectedFile ? 'drop-zone--has-file' : ''}`}
+        className={`drop-zone ${isDragging ? 'drop-zone--dragging' : ''} ${selectedFile ? 'drop-zone--has-file' : ''} ${disabled ? 'drop-zone--disabled' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleButtonClick}
+        style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
       >
         <input
           ref={fileInputRef}

@@ -1,0 +1,104 @@
+/* client/src/components/Asistencia/GraficasAsistencia.css */
+
+.graficas-asistencia {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stats-globales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border-left: 4px solid;
+}
+
+.stat-card--success {
+  border-color: #10b981;
+}
+
+.stat-card--error {
+  border-color: #ef4444;
+}
+
+.stat-card--warning {
+  border-color: #f59e0b;
+}
+
+.stat-label {
+  font-size: 0.85em;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 2.5em;
+  font-weight: 700;
+  margin: 0;
+  color: #111827;
+}
+
+.stat-detail {
+  font-size: 0.8em;
+  color: #9ca3af;
+  margin: 4px 0 0 0;
+}
+
+.graficas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.grafica-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.grafica-card--full {
+  grid-column: 1 / -1;
+}
+
+.grafica-titulo {
+  margin: 0 0 16px 0;
+  font-size: 1.1em;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .graficas-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-globales {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 2em;
+  }
+
+  .grafica-card {
+    padding: 16px;
+  }
+
+  .grafica-titulo {
+    font-size: 1em;
+  }
+}
+

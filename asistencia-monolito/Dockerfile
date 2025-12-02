@@ -42,6 +42,8 @@ COPY package.json package-lock.json ./
 COPY index.js ./
 COPY ./server ./server
 COPY ./config ./config
+COPY ./shared ./shared
+COPY ./scripts ./scripts
 
 # Copia los assets de React compilados desde la etapa 'builder' (Vite compila a client/dist)
 COPY --from=builder /app/client/dist ./build

@@ -160,21 +160,43 @@ db.serialize(() => {
             empleado_id INTEGER NOT NULL,
             fecha DATE NOT NULL,
             dia_semana TEXT,
+            es_laborable INTEGER DEFAULT 1,
+            
+            -- HORARIOS
             horario_entrada_esperada TIME,
             horario_salida_esperada TIME,
+            horas_requeridas_min INTEGER DEFAULT 0,
+            
+            -- MARCAS REALES
             entrada_real TIME,
             salida_real TIME,
+            tiene_entrada INTEGER DEFAULT 0,
+            tiene_salida INTEGER DEFAULT 0,
+            
+            -- HORAS TRABAJADAS
+            minutos_trabajados INTEGER DEFAULT 0,
+            
+            -- RETARDOS
             minutos_retardo INTEGER DEFAULT 0,
             cuenta_retardo INTEGER DEFAULT 0,
+            
+            -- SALIDAS TEMPRANAS
             minutos_salida_temprana INTEGER DEFAULT 0,
             cuenta_salida_temprana INTEGER DEFAULT 0,
+            
+            -- HORAS EXTRA
             minutos_extra_normal INTEGER DEFAULT 0,
             minutos_extra_especial INTEGER DEFAULT 0,
-            minutos_trabajados INTEGER DEFAULT 0,
+            
+            -- INCIDENCIAS
             es_falta INTEGER DEFAULT 0,
             es_permiso INTEGER DEFAULT 0,
             es_vacacion INTEGER DEFAULT 0,
+            
+            -- ESTADO Y OBSERVACIONES
+            estado TEXT DEFAULT 'Completo',
             observaciones TEXT,
+            
             FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE CASCADE,
             FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
             UNIQUE(periodo_id, empleado_id, fecha)
@@ -184,6 +206,23 @@ db.serialize(() => {
             console.error('[DB ERROR] Error al crear tabla "asistencia_diaria":', err.message);
         } else {
             console.log('[DB OK] Tabla "asistencia_diaria" lista.');
+            
+            // MIGRACIONES: Agregar columnas nuevas si la tabla ya existe
+            const nuevasColumnas = [
+                { nombre: 'es_laborable', tipo: 'INTEGER DEFAULT 1' },
+                { nombre: 'horas_requeridas_min', tipo: 'INTEGER DEFAULT 0' },
+                { nombre: 'tiene_entrada', tipo: 'INTEGER DEFAULT 0' },
+                { nombre: 'tiene_salida', tipo: 'INTEGER DEFAULT 0' },
+                { nombre: 'estado', tipo: 'TEXT DEFAULT "Completo"' }
+            ];
+            
+            nuevasColumnas.forEach(col => {
+                db.run(`ALTER TABLE asistencia_diaria ADD COLUMN ${col.nombre} ${col.tipo}`, (alterErr) => {
+                    if (alterErr && !alterErr.message.includes('duplicate column')) {
+                        console.log(`[DB INFO] Columna "${col.nombre}" agregada a asistencia_diaria.`);
+                    }
+                });
+            });
         }
     });
 

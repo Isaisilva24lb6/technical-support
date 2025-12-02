@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "build": "cd client && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cd client && npm install && npm run build"
+    "test:parser": "node scripts/test-parser.js",
+    "clean": "bash scripts/clean-test-data.sh"
   },
   "keywords": [],
   "author": "",
@@ -12,9 +16,13 @@
   "description": "",
   "dependencies": {
     "cors": "^2.8.5",
+    "date-fns": "^3.3.1",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   }
 }

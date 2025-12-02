@@ -122,8 +122,8 @@ function DataValidationTable({ data: initialData, onConfirm, onCancel }: DataVal
                     <td>
                       <input
                         type="email"
-                        value={editedRow.correo}
-                        onChange={(e) => updateField('correo', e.target.value)}
+                        value={editedRow.correo || ''}
+                        onChange={(e) => updateField('correo', e.target.value || '')}
                         className="edit-input"
                         placeholder="empleado@empresa.com"
                       />
@@ -131,16 +131,16 @@ function DataValidationTable({ data: initialData, onConfirm, onCancel }: DataVal
                     <td>
                       <input
                         type="text"
-                        value={editedRow.departamento}
-                        onChange={(e) => updateField('departamento', e.target.value)}
+                        value={editedRow.departamento || ''}
+                        onChange={(e) => updateField('departamento', e.target.value || '')}
                         className="edit-input"
                       />
                     </td>
                     <td>
                       <input
                         type="text"
-                        value={editedRow.grupo}
-                        onChange={(e) => updateField('grupo', e.target.value)}
+                        value={editedRow.grupo || ''}
+                        onChange={(e) => updateField('grupo', e.target.value || '')}
                         className="edit-input"
                       />
                     </td>

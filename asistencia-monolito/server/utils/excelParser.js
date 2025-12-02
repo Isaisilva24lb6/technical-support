@@ -199,15 +199,20 @@ function extractEmployeeNum(cellValue) {
     
     const str = String(cellValue).trim();
     
-    // Si es un número puro, usarlo directamente
+    // Si es un número puro, usarlo directamente (SIN PADDING)
     if (/^\d{1,6}$/.test(str)) {
-        return str.padStart(3, '0'); // Padding a 3 dígitos mínimo
+        // ✅ IMPORTANTE: Convertir a int para eliminar ceros a la izquierda
+        // "001" → 1 → "1"
+        // "008" → 8 → "8"
+        // "100" → 100 → "100"
+        return String(parseInt(str, 10));
     }
     
     // Intentar extraer con regex
     const match = str.match(EMPLOYEE_NUM_REGEX);
     if (match && match[1]) {
-        return match[1].padStart(3, '0');
+        // ✅ IMPORTANTE: También eliminar padding del regex
+        return String(parseInt(match[1], 10));
     }
     
     return null;

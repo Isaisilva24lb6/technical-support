@@ -8,6 +8,8 @@ const fs = require('fs');
 
 // --- Importar rutas de módulos ---
 const empleadosRoutes = require('./routes/empleados');
+const asistenciaRoutes = require('./routes/asistencia');
+const databaseRoutes = require('./routes/database');
 
 // --- Configuración de Multer para la subida de archivos ---
 // Guardamos el archivo Excel en la carpeta 'data/' (el volumen persistente)
@@ -65,5 +67,7 @@ router.get('/status', (req, res) => {
 
 // --- Montar rutas de módulos ---
 router.use('/empleados', empleadosRoutes);
+router.use('/asistencia', asistenciaRoutes);
+router.use('/database', databaseRoutes);
 
 module.exports = router;

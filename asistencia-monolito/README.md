@@ -1,376 +1,570 @@
-# 🏢 Sistema de Asistencia - Monolito
+# 📊 Sistema de Asistencia y Control de Empleados
 
-Sistema monolítico para procesar y gestionar archivos Excel de asistencia de empleados, desplegado en Raspberry Pi 5.
-
----
-
-## 📋 **Descripción del Proyecto**
-
-Este proyecto automatiza el procesamiento de archivos Excel de asistencia generados por relojes checadores. El sistema:
-
-- ✅ Recibe archivos Excel con múltiples hojas (Resumen, Registros, grupos de empleados)
-- ✅ Extrae y normaliza todas las marcas de entrada/salida
-- ✅ Calcula retardos, horas extra, faltas y tiempo trabajado
-- ✅ Compara los cálculos propios vs los totales oficiales del Excel
-- ✅ Genera reportes y estadísticas de asistencia
+Sistema integral de gestión de asistencia para empleados con capacidades de importación desde Excel, cálculo automático de métricas, y visualización interactiva de datos.
 
 ---
 
-## 🏗️ **Arquitectura**
+## 🚀 Características Principales
 
-**Tipo:** Monolito en contenedor Docker
+### 👥 Gestión de Empleados
+- ✅ Importación masiva desde Excel
+- ✅ CRUD completo (Crear, Leer, Actualizar, Eliminar)
+- ✅ Exportación a Excel
+- ✅ Validación automática de datos
+- ✅ Control de estados (Activo/Inactivo)
+- ✅ Organización por departamentos y grupos
 
-| Componente | Tecnología | Propósito |
-|------------|------------|-----------|
-| **Frontend** | React + TypeScript + Vite | Interfaz de usuario |
-| **Backend** | Node.js v23.7.0 + Express.js | API REST y lógica de negocio |
-| **Base de Datos** | SQLite 3 | Almacenamiento local (archivo `data/asistencia.db`) |
-| **Procesamiento Excel** | ExcelJS | Lectura y extracción de datos |
-| **Subida de Archivos** | Multer | Manejo de archivos Excel |
+### 📅 Control de Asistencia
+- ✅ Importación de archivos Excel de relojes checadores (Nextep NE-234)
+- ✅ Parser inteligente multi-formato (linear/grid)
+- ✅ Detección automática de estructura de hojas
+- ✅ Validación de empleados contra base de datos
+- ✅ Almacenamiento de marcas crudas (entrada/salida)
+- ✅ **Cálculo automático día por día**
+- ✅ **Gestión de períodos históricos**
 
----
+### 📊 Análisis y Visualización
+- ✅ **Vista de Calendario**: Visualización mensual con códigos de color
+- ✅ **Tabla Detallada**: Filtros por empleado, fecha y departamento
+- ✅ **Gráficas Interactivas**: Charts con Recharts
+- ✅ Resumen de estadísticas por período
+- ✅ Indicadores visuales de retardos, faltas y horas extra
+- ✅ Exportación de reportes
 
-## 🚀 **Tecnologías y Versiones**
-
-- **Node.js:** v23.7.0
-- **npm:** v10.9.2
-- **Gestión de Versiones:** NVM (Node Version Manager)
-- **Contenedorización:** Docker (multi-arquitectura: amd64 + arm64)
-- **Control de Versiones:** Git + GitHub
-
----
-
-## 📦 **Requisitos Previos**
-
-### **Para Desarrollo:**
-- Windows 10/11 con **WSL2** (Debian/Ubuntu)
-- **Docker Desktop** instalado y configurado con WSL2
-- **NVM** instalado en WSL2
-- **Node.js v23.7.0** y **npm v10.9.2** (vía NVM)
-- Cuenta en **Docker Hub** (para despliegue multi-arquitectura)
-
-### **Para Producción (Raspberry Pi 5):**
-- Raspberry Pi 5 con Debian/Raspberry Pi OS
-- Docker instalado
-- SSD principal de 1TB + 2 SSD externos de 1TB (backup)
-- IP fija configurada en el router
-- PM2 (opcional, para gestión de procesos)
+### 🧮 Cálculos Automáticos
+- ✅ Horas trabajadas por día
+- ✅ Detección de retardos (entrada tardía)
+- ✅ Salidas tempranas
+- ✅ Horas extra (normales y especiales)
+- ✅ Registro de faltas, permisos y vacaciones
+- ✅ Comparación con horarios esperados
+- ✅ Validación contra totales de Excel
 
 ---
 
-## 🛠️ **Instalación y Configuración**
+## 🏗️ Arquitectura del Sistema
 
-### **1. Clonar el Repositorio**
+### Stack Tecnológico
 
-```bash
-git clone https://github.com/tu-usuario/asistencia-monolito.git
-cd asistencia-monolito
-```
+#### Backend
+- **Node.js** + **Express.js** (API REST)
+- **SQLite3** (Base de datos)
+- **ExcelJS** (Procesamiento de archivos Excel)
+- **Multer** (Upload de archivos)
+- **date-fns** (Manipulación de fechas)
 
-### **2. Configurar Node.js (Solo si desarrollas sin Docker)**
+#### Frontend
+- **React 18** + **TypeScript**
+- **Vite** (Build tool)
+- **Recharts** (Gráficas)
+- **CSS Variables** (Theming)
+- **Axios** (HTTP Client)
 
-```bash
-# Instalar y usar la versión correcta de Node
-nvm install 23.7.0
-nvm use 23.7.0
-
-# Verificar versiones
-node -v  # Debe mostrar v23.7.0
-npm -v   # Debe mostrar v10.9.2
-```
-
----
-
-## 🐳 **Uso con Docker**
-
-### **Desarrollo Local (Tu PC)**
-
-```bash
-# Construir y levantar el contenedor
-docker-compose up -d
-
-# Ver logs en tiempo real
-docker-compose logs -f
-
-# Detener el contenedor
-docker-compose down
-
-# Reconstruir si hay cambios
-docker-compose up -d --build
-```
-
-**Acceder a la aplicación:** http://localhost:3005
-
-**Nota:** El puerto es 3005 en lugar de 3000 para evitar conflictos con otros proyectos.
+#### Infraestructura
+- **Docker** + **Docker Compose**
+- Volúmenes persistentes para datos
+- Hot-reload en desarrollo
+- Puerto 3005 (host) → 3000 (contenedor)
 
 ---
 
-### **Construcción Multi-Arquitectura (Para Docker Hub)**
-
-> ⚠️ **IMPORTANTE:** Antes de construir y subir imágenes, debes configurar tu cuenta de Docker Hub.
-> 
-> 📖 **Ver guía completa:** [Configuración de Docker Hub](./DOCS/docker-hub-setup.md)
-> 
-> **Pasos básicos:**
-> 1. Crea una cuenta en https://hub.docker.com/signup
-> 2. Edita `docker-compose.prod.yml` y reemplaza `tu-usuario-dockerhub` con tu usuario real
-> 3. Inicia sesión: `docker login`
-
-**Configuración inicial (solo primera vez):**
-
-```bash
-# 1. Crear builder multi-arquitectura
-docker buildx create --name multiarch --use
-docker buildx inspect --bootstrap
-
-# 2. Login a Docker Hub
-docker login
-# Usuario: tu-usuario-dockerhub
-# Contraseña: [tu contraseña]
-```
-
-**Construir y subir imagen:**
-
-```bash
-# Construir para amd64 (PC) y arm64 (Raspberry Pi) y subir
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
-  -t tu-usuario-dockerhub/asistencia-monolito:latest \
-  --push \
-  .
-```
-
----
-
-### **Despliegue en Raspberry Pi (Producción)**
-
-```bash
-# 1. Clonar el repositorio (solo primera vez)
-git clone https://github.com/tu-usuario/asistencia-monolito.git
-cd asistencia-monolito
-
-# 2. Descargar la imagen desde Docker Hub
-docker-compose -f docker-compose.prod.yml pull
-
-# 3. Levantar el contenedor
-docker-compose -f docker-compose.prod.yml up -d
-
-# 4. Verificar estado
-docker-compose -f docker-compose.prod.yml ps
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-**Acceder desde la red local:** http://192.168.1.X:3000 (IP de tu Raspberry Pi)
-
-**Nota:** En producción (RPi) se usa el puerto 3000 por defecto. En desarrollo local usamos 3005.
-
----
-
-## 📂 **Estructura del Proyecto**
+## 📁 Estructura del Proyecto
 
 ```
 asistencia-monolito/
-├── 📄 Dockerfile                    # Construcción multi-arquitectura
-├── 📄 docker-compose.yml           # Desarrollo local
-├── 📄 docker-compose.prod.yml      # Producción (Raspberry Pi)
-├── 📄 package.json                 # Dependencias del backend
-├── 🚀 index.js                     # Punto de entrada del servidor
+├── client/                      # Frontend React + TypeScript
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Asistencia/
+│   │   │   │   ├── CalendarioAsistencia.tsx      # Vista calendario
+│   │   │   │   ├── TablaDetalladaAsistencia.tsx  # Vista tabla
+│   │   │   │   ├── GraficasAsistencia.tsx        # Vista gráficas
+│   │   │   │   ├── FileUploader.tsx              # Subida de archivos
+│   │   │   │   └── AsistenciaValidationTable.tsx # Validación
+│   │   │   ├── Employee/
+│   │   │   │   └── EmployeeImporter.tsx          # Importador empleados
+│   │   │   ├── Empleados/
+│   │   │   │   └── EmpleadosTable.tsx            # Tabla empleados
+│   │   │   ├── Periods/
+│   │   │   │   ├── PeriodsList.tsx               # Lista períodos
+│   │   │   │   └── PeriodDetailViewNew.tsx       # Detalle período
+│   │   │   └── common/
+│   │   │       └── VideoBackground.tsx           # Fondo video
+│   │   ├── pages/
+│   │   │   ├── HomePage.tsx                      # Página inicio
+│   │   │   ├── EmpleadosPage.tsx                 # Gestión empleados
+│   │   │   └── PeriodsPage.tsx                   # Gestión períodos
+│   │   ├── services/
+│   │   │   └── api.ts                            # Cliente API
+│   │   └── styles/
+│   │       └── index.css                         # Estilos globales
+│   └── package.json
 │
-├── 📁 config/
-│   └── db.js                       # Configuración de SQLite (7 tablas)
+├── server/                      # Backend Node.js + Express
+│   ├── routes/
+│   │   ├── asistencia.js                         # Rutas de asistencia
+│   │   └── empleados.js                          # Rutas de empleados
+│   ├── parsers/
+│   │   ├── intelligentParser.js                  # Parser genérico
+│   │   └── nextepParser.js                       # Parser Nextep NE-234
+│   └── services/
+│       └── asistenciaCalculator.js               # Cálculo diario
 │
-├── 📁 server/
-│   └── api.js                      # Rutas API (upload, status, etc.)
+├── config/
+│   └── db.js                    # Configuración SQLite
 │
-├── 📁 client/                      # Frontend React
-│   ├── vite.config.ts              # Configuración de Vite (con proxy)
-│   ├── package.json                # Dependencias del frontend
-│   └── src/
-│       ├── App.tsx                 # Componente principal
-│       └── ...
+├── data/                        # Datos persistentes (volumen Docker)
+│   ├── database.sqlite          # Base de datos
+│   └── uploads/
+│       ├── empleados/           # Excel de empleados
+│       └── asistencia/          # Excel de asistencia
 │
-├── 📁 data/                        # Datos persistentes (ignorado en Git)
-│   ├── asistencia.db               # Base de datos SQLite
-│   └── uploads/                    # Archivos Excel subidos
+├── DOCS/                        # Documentación técnica
+│   ├── API.md                   # Endpoints API
+│   ├── DATABASE.md              # Esquema de base de datos
+│   ├── PARSERS.md               # Lógica de parsers
+│   ├── CALCULATOR.md            # Cálculo de asistencia
+│   └── COMPONENTS.md            # Componentes frontend
 │
-└── 📁 DOCS/                        # Documentación adicional
-    └── setup-log.md                # Histórico de configuración
+├── docker-compose.yml           # Orquestación Docker
+├── Dockerfile                   # Imagen Docker
+├── index.js                     # Entry point backend
+└── README.md                    # Este archivo
 ```
 
 ---
 
-## 🗄️ **Base de Datos (SQLite)**
+## 🗄️ Base de Datos
 
-El sistema utiliza **7 tablas** para capturar toda la información del Excel:
+### Tablas Principales
 
-1. **`periodos`** - Información de cada archivo Excel cargado
-2. **`empleados`** - Datos básicos de empleados
-3. **`horarios_turnos`** - Configuración de turnos por periodo
-4. **`marcas_crudas`** - Marcas del reloj checador (hoja "Registros")
-5. **`asistencia_diaria`** - Datos procesados día por día (calculados)
-6. **`totales_excel`** - Totales oficiales del Excel (hoja "Resumen")
-7. **`logs_importacion`** - Historial de importaciones
+#### `empleados`
+Catálogo maestro de empleados.
 
-**Ubicación:** `data/asistencia.db` (se crea automáticamente al iniciar)
+```sql
+CREATE TABLE empleados (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  num TEXT UNIQUE NOT NULL,          -- Número de empleado
+  nombre TEXT NOT NULL,
+  correo TEXT,
+  departamento TEXT,
+  grupo TEXT,
+  activo BOOLEAN DEFAULT 1,
+  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### `periodos`
+Períodos de asistencia (generalmente mensuales).
+
+```sql
+CREATE TABLE periodos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,              -- ej: "Agosto 2025"
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NOT NULL,
+  archivo_origen TEXT,
+  fecha_importacion DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### `marcas_crudas`
+Registros de entrada/salida sin procesar.
+
+```sql
+CREATE TABLE marcas_crudas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  periodo_id INTEGER NOT NULL,
+  empleado_id INTEGER NOT NULL,
+  fecha DATE NOT NULL,
+  hora TIME NOT NULL,
+  tipo TEXT,                         -- 'Entrada', 'Salida', 'Desconocido'
+  FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE CASCADE,
+  FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE
+);
+```
+
+#### `totales_excel`
+Totales extraídos del Excel (hoja "Resumen").
+
+```sql
+CREATE TABLE totales_excel (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  periodo_id INTEGER NOT NULL,
+  empleado_id INTEGER NOT NULL,
+  tiempo_requerido_min INTEGER DEFAULT 0,
+  tiempo_real_min INTEGER DEFAULT 0,
+  retardos_cuenta INTEGER DEFAULT 0,
+  retardos_min INTEGER DEFAULT 0,
+  salidas_tempranas_cuenta INTEGER DEFAULT 0,
+  salidas_tempranas_min INTEGER DEFAULT 0,
+  extra_normal_min INTEGER DEFAULT 0,
+  extra_especial_min INTEGER DEFAULT 0,
+  dias_asistidos INTEGER DEFAULT 0,
+  dias_periodo INTEGER DEFAULT 0,
+  vacaciones INTEGER DEFAULT 0,
+  faltas INTEGER DEFAULT 0,
+  permisos INTEGER DEFAULT 0,
+  FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE CASCADE,
+  FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE
+);
+```
+
+#### `asistencia_diaria` 🆕
+**Cálculos día por día realizados por el backend.**
+
+```sql
+CREATE TABLE asistencia_diaria (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  periodo_id INTEGER NOT NULL,
+  empleado_id INTEGER NOT NULL,
+  fecha DATE NOT NULL,
+  dia_semana TEXT,                   -- 'Lunes', 'Martes', etc.
+  es_laborable BOOLEAN DEFAULT 1,    -- FALSE si es fin de semana
+  horario_entrada_esperada TIME,     -- ej: '07:00'
+  horario_salida_esperada TIME,      -- ej: '18:00'
+  entrada_real TIME,                 -- Hora de entrada registrada
+  salida_real TIME,                  -- Hora de salida registrada
+  minutos_trabajados INTEGER DEFAULT 0,
+  minutos_retardo INTEGER DEFAULT 0,
+  cuenta_retardo INTEGER DEFAULT 0,  -- 0 o 1
+  minutos_salida_temprana INTEGER DEFAULT 0,
+  cuenta_salida_temprana INTEGER DEFAULT 0,
+  minutos_extra_normal INTEGER DEFAULT 0,
+  minutos_extra_especial INTEGER DEFAULT 0,
+  es_falta BOOLEAN DEFAULT 0,
+  es_permiso BOOLEAN DEFAULT 0,
+  es_vacacion BOOLEAN DEFAULT 0,
+  estado TEXT,                       -- 'Completo', 'Incompleto', 'Falta', 'No Laborable'
+  observaciones TEXT,
+  FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE CASCADE,
+  FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE CASCADE,
+  UNIQUE(periodo_id, empleado_id, fecha)
+);
+```
+
+#### `logs_importacion`
+Historial de importaciones.
+
+```sql
+CREATE TABLE logs_importacion (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  periodo_id INTEGER,
+  tipo TEXT,                         -- 'empleados', 'asistencia'
+  archivo TEXT,
+  resultado TEXT,                    -- 'exitoso', 'error'
+  detalles TEXT,
+  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (periodo_id) REFERENCES periodos(id) ON DELETE SET NULL
+);
+```
 
 ---
 
-## 🔌 **API Endpoints**
+## 🔌 API Endpoints
+
+### Empleados
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `GET` | `/api/status` | Estado del servidor y conexión a BD |
-| `POST` | `/api/upload-excel` | Subir y procesar archivo Excel |
+| GET | `/api/empleados` | Listar todos los empleados |
+| POST | `/api/empleados/create` | Crear empleado |
+| PUT | `/api/empleados/:id` | Actualizar empleado |
+| DELETE | `/api/empleados/:id` | Eliminar empleado |
+| POST | `/api/empleados/upload` | Subir Excel de empleados |
+| POST | `/api/empleados/confirm` | Confirmar importación |
+| GET | `/api/empleados/export` | Descargar Excel |
+
+### Asistencia
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/asistencia/upload` | Subir Excel de asistencia |
+| GET | `/api/asistencia/verify-employees` | Validar empleados |
+| POST | `/api/asistencia/confirm` | Confirmar y calcular |
+| GET | `/api/asistencia/periodos` | Listar períodos |
+| GET | `/api/asistencia/periodos/:id` | Detalle de período |
+| GET | `/api/asistencia/periodos/:id/dia-por-dia` | **Asistencia diaria** 🆕 |
+
+**Ver documentación completa en:** [`DOCS/API.md`](./DOCS/API.md)
 
 ---
 
-## 🔄 **Flujo de Trabajo**
+## 🧮 Cálculo de Asistencia Diaria
 
-### **1. Desarrollo (en tu PC con WSL2)**
-```bash
-# Editar código → docker-compose up -d → Probar → Commit
+### Flujo de Cálculo
+
+1. **Upload** → Usuario sube archivo Excel
+2. **Parser** → `nextepParser.js` extrae datos
+3. **Validación** → Frontend valida empleados vs BD
+4. **Confirmación** → Usuario confirma importación
+5. **Guardado** → Backend guarda `marcas_crudas` + `totales_excel`
+6. **Cálculo Diario** → `asistenciaCalculator.js` procesa día por día
+7. **Persistencia** → Se crea tabla `asistencia_diaria`
+8. **Visualización** → Frontend consume endpoint `/dia-por-dia`
+
+### Algoritmo de Cálculo
+
+```javascript
+Para cada empleado:
+  Para cada día del período:
+    1. ¿Es día laborable? (Lunes-Viernes)
+    2. Obtener marcas del día (entrada/salida)
+    3. Calcular minutos trabajados
+    4. Detectar retardo (entrada > 07:00)
+    5. Detectar salida temprana (salida < 18:00)
+    6. Determinar estado:
+       - "Completo": Entrada + Salida
+       - "Incompleto": Solo entrada o solo salida
+       - "Falta": Sin marcas en día laborable
+       - "No Laborable": Fin de semana
+    7. Guardar en asistencia_diaria
 ```
 
-### **2. Construcción Multi-Arquitectura**
+**Ver documentación completa en:** [`DOCS/CALCULATOR.md`](./DOCS/CALCULATOR.md)
+
+---
+
+## 📊 Componentes de Visualización
+
+### 1. Vista Calendario (`CalendarioAsistencia.tsx`)
+
+Muestra un calendario mensual con colores por estado:
+
+- 🟢 **Verde**: Asistencia completa
+- 🟡 **Amarillo**: Retardo o salida temprana
+- 🔴 **Rojo**: Falta
+- ⚪ **Gris**: No laborable (fin de semana)
+- 🔵 **Azul**: Permiso, vacación o incompleto
+
+### 2. Vista Tabla (`TablaDetalladaAsistencia.tsx`)
+
+Tabla detallada con columnas:
+- Fecha y día de la semana
+- Horarios esperados vs reales
+- Minutos trabajados, retardo, salida temprana
+- Estado del día
+- Filtros por empleado
+
+### 3. Vista Gráficas (`GraficasAsistencia.tsx`)
+
+Gráficas interactivas con Recharts:
+- **Barras**: Resumen por empleado (asistencias/faltas/retardos)
+- **Pie**: Distribución de incidencias
+- **Líneas**: Horas trabajadas por día
+
+**Ver documentación completa en:** [`DOCS/COMPONENTS.md`](./DOCS/COMPONENTS.md)
+
+---
+
+## 🐳 Instalación y Despliegue
+
+### Requisitos Previos
+
+- Docker 20.10+
+- Docker Compose 1.29+
+- Git
+
+### Instalación
+
 ```bash
-# Construir para amd64 + arm64 → Subir a Docker Hub
-docker buildx build --platform linux/amd64,linux/arm64 -t tu-usuario-dockerhub/asistencia-monolito:latest --push .
+# 1. Clonar repositorio
+git clone <repo-url>
+cd asistencia-monolito
+
+# 2. Construir y levantar contenedor
+docker-compose up -d
+
+# 3. Verificar logs
+docker logs -f asistencia-monolito-dev
+
+# 4. Acceder a la aplicación
+# Abrir navegador en: http://localhost:3005
 ```
 
-### **3. Despliegue en Raspberry Pi**
+### Comandos Útiles
+
 ```bash
-# Pull desde Docker Hub → Levantar contenedor
-docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d
+# Ver logs en tiempo real
+docker logs -f asistencia-monolito-dev
+
+# Reiniciar contenedor
+docker-compose restart
+
+# Reconstruir sin caché
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Acceder a shell del contenedor
+docker exec -it asistencia-monolito-dev sh
+
+# Limpiar TODO (cuidado: borra volúmenes)
+docker-compose down -v
+docker system prune -a --volumes
+```
+
+### Variables de Entorno
+
+Configuradas en `docker-compose.yml`:
+
+```yaml
+environment:
+  - NODE_ENV=production
+  - PORT=3000
 ```
 
 ---
 
-## 📊 **Estado del Proyecto**
+## 📖 Guía de Uso
 
-**Fase Actual:** ✅ Frontend Base + Backend Funcional
+### 1. Importar Empleados
 
-### Backend
-- [x] Arquitectura definida
-- [x] Dockerfile multi-arquitectura (amd64 + arm64)
-- [x] Base de datos SQLite (7 tablas completas)
-- [x] API básica (subida de archivos)
-- [x] Docker Compose (desarrollo y producción)
-- [x] Sistema probado y operacional ✨
-- [ ] Lógica de procesamiento de Excel (próximo paso)
+1. Ir a **Empleados** → Click en "📂 Importar desde Excel"
+2. Seleccionar archivo Excel con columnas:
+   - `num` (obligatorio)
+   - `nombre` (obligatorio)
+   - `correo`
+   - `departamento`
+   - `grupo`
+3. Confirmar importación
+4. Los empleados se guardan en la BD
 
-### Frontend
-- [x] **React + TypeScript + Vite** ✨
-- [x] **React Router configurado** ✨
-- [x] **Sistema de diseño con variables CSS** ✨
-- [x] **Navbar con glassmorphism y tema oscuro** ✨
-- [x] **Efectos visuales modernos (overlays, ripple, gradientes)** ✨
-- [x] **Responsividad completa (móvil → desktop)** ✨
-- [x] **2 páginas placeholder** ✨
-- [ ] Componentes de negocio (FileUploader, Tables, etc.)
-- [ ] Integración con APIs del backend
+### 2. Importar Asistencia
 
-### Testing
-- [ ] Tests unitarios
-- [ ] Tests de integración
-- [ ] Tests E2E
+1. Ir a **Inicio** → Click en "📂 Subir Archivo Excel"
+2. Seleccionar archivo Excel de reloj checador (ej: `001_2025_8_MON.xlsx`)
+3. Sistema detecta automáticamente:
+   - Hoja "Resumen" → Totales
+   - Hoja "Registros" → Marcas diarias
+   - Hojas individuales (1.3.5, etc.)
+4. Validar empleados contra BD
+5. Confirmar guardado
+6. **El sistema calcula automáticamente la asistencia día por día** 🆕
 
-**Acceso al Sistema:** http://localhost:3005  
-**API Status:** http://localhost:3005/api/status
+### 3. Consultar Períodos
 
-**Documentación:**
-- [Histórico de Configuración](./DOCS/setup-log.md) - Problemas resueltos y setup completo
-- [Arquitectura del Frontend](./DOCS/frontend-architecture.md) - Diseño, componentes y guía de estilos
+1. Ir a **Períodos**
+2. Seleccionar un período (ej: "Agosto 2025")
+3. Ver estadísticas generales
+4. Cambiar entre vistas:
+   - 📅 **Calendario**: Vista mensual
+   - 📋 **Tabla**: Detalle día por día
+   - 📊 **Gráficas**: Análisis visual
+5. Filtrar por empleado
 
 ---
 
-## 🐛 **Resolución de Problemas**
+## 🐛 Solución de Problemas
 
-### **El contenedor no arranca:**
-```bash
-# Ver logs detallados
-docker-compose logs -f
+### El modal no se ve completo
 
-# Verificar estado
-docker-compose ps
-```
+**Solución:** Implementado con React Portals (`createPortal`). Si persiste, hacer refresh.
 
-### **Error: "port is already allocated"**
-**Causa:** Otro contenedor está usando el puerto 3005 (o 3000).
+### Error "removeChild" al importar empleados
+
+**Solución:** Corregido en `EmpleadosPage.tsx` (evita cambios de estado simultáneos).
+
+### Parser detecta 0 empleados
+
+**Causas:**
+- Archivo incorrecto (debe tener hoja "Resumen" o "Registros")
+- Números de empleado con formato incorrecto
+
+**Solución:** Verificar que el archivo tiene la estructura esperada.
+
+### Cálculo diario retorna 0 registros
+
+**Causas:**
+- Fechas en formato ISO completo (con `T00:00:00.000Z`)
+
+**Solución:** Corregido en `asistenciaCalculator.js` → Normaliza fechas automáticamente.
+
+### Error "413 Payload Too Large"
+
+**Solución:** Límite de body-parser aumentado a 50MB en `index.js`.
+
+### Docker no refleja cambios
 
 **Solución:**
 ```bash
-# Ver qué contenedor usa el puerto
-docker ps -a | grep 3005
-
-# Cambiar el puerto en docker-compose.yml
-ports:
-  - "3006:3000"  # Usar otro puerto disponible
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
-### **El contenedor se reinicia constantemente (Restarting)**
-**Causa:** Imagen de Docker corrupta o construcción con caché problemática.
+---
 
-**Solución rápida:**
-```bash
-# Reconstruir sin caché
-docker compose down
-docker compose build --no-cache
-docker compose up -d
-```
+## 🔐 Seguridad
 
-**📖 Ver solución completa:** [Troubleshooting Docker](./DOCS/troubleshooting-docker.md)
-
-### **Error: "Invalid containerPort" en Docker build**
-**Causa:** Comentario inline en el comando `EXPOSE` del Dockerfile.
-
-**Solución:** Mover comentarios a líneas separadas.
-
-### **Error de conexión a la base de datos:**
-- Verificar que la carpeta `data/` exista
-- Verificar permisos de escritura
-- Verificar que el volumen esté montado: `docker-compose ps`
-
-### **Build muy lento:**
-- Verificar que existe `.dockerignore`
-- Limpiar imágenes antiguas: `docker system prune -a`
-- Limpiar caché de build: `docker-compose build --no-cache`
-
-### **Frontend no se ve / Página en blanco:**
-- Verificar que React se compiló correctamente en los logs
-- Verificar que la carpeta `build/` existe en el contenedor:
-  ```bash
-  docker exec asistencia-monolito-dev ls -la /app/build
-  ```
-
-Para más detalles sobre errores específicos y sus soluciones, consulta: [`DOCS/setup-log.md`](./DOCS/setup-log.md#-pruebas-del-sistema-y-errores-encontrados)
+- ✅ Validación de archivos Excel
+- ✅ Sanitización de entrada de usuario
+- ✅ Límites de tamaño de payload (50MB)
+- ✅ ON DELETE CASCADE en relaciones FK
+- ⚠️ **TODO**: Implementar autenticación
+- ⚠️ **TODO**: Rate limiting en API
 
 ---
 
-## 📝 **Licencia**
+## 📝 Roadmap
 
-(Por definir)
+### Versión Actual (v1.0)
+- ✅ Gestión de empleados
+- ✅ Importación de asistencia
+- ✅ Cálculo día por día
+- ✅ Visualización (Calendario, Tabla, Gráficas)
+
+### Próximas Versiones
+
+#### v1.1
+- [ ] Autenticación y roles de usuario
+- [ ] Horarios personalizados por empleado/grupo
+- [ ] Notificaciones de faltas/retardos
+- [ ] Exportación de reportes PDF
+
+#### v1.2
+- [ ] Dashboard con métricas en tiempo real
+- [ ] Comparativa entre períodos
+- [ ] Predicción de tendencias (ML)
+- [ ] API REST completa con documentación OpenAPI
+
+#### v2.0
+- [ ] Integración con hardware de reloj checador
+- [ ] App móvil (React Native)
+- [ ] Multi-tenancy (múltiples empresas)
+- [ ] Sincronización en la nube
 
 ---
 
-## 👥 **Autor**
+## 🤝 Contribución
 
-Desarrollado por el equipo de soporte técnico.
+1. Fork el proyecto
+2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request
 
 ---
 
-## 📚 **Documentación Adicional**
+## 📄 Licencia
 
-### Guías de Usuario
-- [Guía de Inicio Rápido](./QUICK_START.md) - Cómo empezar a usar el sistema
-- [Gestión de Empleados](./DOCS/employee-management.md) - Módulo de empleados
+Este proyecto es privado y de uso interno.
 
-### Guías de Desarrollo y Despliegue
-- [Configuración de Docker Hub](./DOCS/docker-hub-setup.md) - Cómo configurar tu cuenta para hacer push
-- [Solución de Problemas con Docker](./DOCS/troubleshooting-docker.md) - Errores comunes y sus soluciones
-- [Arquitectura del Frontend](./DOCS/frontend-architecture.md) - Diseño, componentes y efectos visuales
-- [Histórico de Configuración](./DOCS/setup-log.md) - Log completo del setup del proyecto
+---
 
-### Documentación Técnica *(Por crear)*
-- [Estructura del Excel de Asistencia](./DOCS/excel-structure.md)
-- [Guía de Desarrollo con TDD](./DOCS/tdd-guide.md)
+## 👨‍💻 Desarrolladores
 
+- **Backend**: Node.js + Express + SQLite
+- **Frontend**: React + TypeScript + Vite
+- **DevOps**: Docker + Docker Compose
+
+---
+
+## 📞 Soporte
+
+Para dudas o reportes de errores, revisar la documentación en `DOCS/` o contactar al equipo de desarrollo.
+
+---
+
+**Última actualización:** Diciembre 2025  
+**Versión:** 1.0.0

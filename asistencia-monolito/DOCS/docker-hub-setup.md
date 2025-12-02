@@ -261,3 +261,6 @@ docker-compose -f docker-compose.prod.yml up -d
 
 **Última actualización:** 23 de noviembre, 2025
 
+
+
+

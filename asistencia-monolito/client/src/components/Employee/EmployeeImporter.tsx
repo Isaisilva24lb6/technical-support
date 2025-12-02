@@ -10,9 +10,10 @@ import './EmployeeImporter.css';
 
 interface EmployeeImporterProps {
   onStepChange?: (step: 'upload' | 'validate' | 'success') => void;
+  onImportComplete?: () => void;
 }
 
-const EmployeeImporter: React.FC<EmployeeImporterProps> = ({ onStepChange }) => {
+const EmployeeImporter: React.FC<EmployeeImporterProps> = ({ onStepChange, onImportComplete }) => {
   const [step, setStep] = useState<'upload' | 'validate' | 'success'>('upload');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +80,11 @@ const EmployeeImporter: React.FC<EmployeeImporterProps> = ({ onStepChange }) => 
       );
       
       setStep('success');
+      
+      // Notificar al padre que se completó la importación
+      if (onImportComplete) {
+        onImportComplete();
+      }
     } catch (err) {
       const errorMsg = handleApiError(err);
       setError(errorMsg);

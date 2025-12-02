@@ -5,10 +5,16 @@
 # Construye la imagen localmente en lugar de descargarla de Docker Hub
 # 
 # Uso:
-#   docker-compose up -d        # Levantar el contenedor
-#   docker-compose down         # Detener y eliminar el contenedor
-#   docker-compose logs -f      # Ver logs en tiempo real
-#   docker-compose restart      # Reiniciar el contenedor
+#   docker-compose up -d --build       # Levantar forzando rebuild
+#   docker-compose down                # Detener y eliminar el contenedor
+#   docker-compose down -v             # Detener y eliminar volúmenes
+#   docker-compose logs -f             # Ver logs en tiempo real
+#   docker-compose restart             # Reiniciar el contenedor
+# 
+# Para limpiar completamente (cuando hay problemas):
+#   docker-compose down -v
+#   docker system prune -a -f
+#   docker-compose up -d --build
 
 services:
   asistencia-app:
@@ -16,8 +22,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # NO usar caché para asegurar builds frescos
+      # Comentar esta línea si quieres builds más rápidos en desarrollo
+      # args:
+      #   - BUILDKIT_INLINE_CACHE=1
     
+    # Nombre único para evitar conflictos
     container_name: asistencia-monolito-dev
+    
+    # Nombre de la imagen (para identificarla fácilmente)
+    image: asistencia-monolito:dev-latest
     
     # Mapeo de puertos: [puerto_host]:[puerto_contenedor]
     # Puerto cambiado a 3005 para evitar conflicto con ZuluCommerce
@@ -37,6 +51,15 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - TZ=America/Mexico_City
+    
+    # Healthcheck para verificar que el servidor esté funcionando
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     
     # Redes (opcional, útil si agregas más servicios después)
     networks:
